@@ -1,0 +1,7 @@
+flask
+python-magic
+rarfile
+py7zr
+import patool
+PyPDF2
+import msoffcrypto-tool #word

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Загрузка файлов</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Сервер загрузки файлов</h1>
+        <h2> Загрузить файл</h2>
+        <form action="/open_file" method="post" enctype="multipart/form-data">
+            <input type ="file" name="file" required>
+            <br>
+            <input type="text" name="password" placeholder="Пароль">
+            <input type="submit" value="Загрузить">
+        </form>
+    </div>
+</body>
+</html>
