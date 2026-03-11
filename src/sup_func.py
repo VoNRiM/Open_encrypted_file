@@ -1,31 +1,25 @@
-#Для работы с файлами
-"""Нужно сделать:
-"""
 #Включённые
 import tempfile
 import os
-from zipfile import ZipFile
 import subprocess
+import shutil
 
 # Сторонние
 import base64
 import magic
-import py7zr
 from patoolib.util import PatoolError
 from pypdf import PdfReader, PdfWriter #PDF
 from pypdf.errors import  PdfReadError
 import msoffcrypto #word
 import patoolib
-# from rarfile import RarFile #rar
 from loguru import logger
+from zipfile import ZipFile
+from rarfile import RarFile
+import py7zr
 
-#Пароль от файлов: c2FzaGFiZXN0MQ==
+# Пароль от файлов: c2FzaGFiZXN0MQ==
 
-# logger.add(sys.stdout,
-#            format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>",
-#            level="DEBUG")
-
-logger.add("../temp/debug.log",
+logger.add("debug.log",
            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
            level="DEBUG",
            rotation="10 MB",
@@ -61,58 +55,62 @@ def check_filetype(file_path):
         'application/pdf': 'pdf',
     }
     file_type = magic.from_file(file_path, mime=True)
-    # Сначала проверяем ZIP (docx, xlsx, pptx)
-    # if file_type == "application/zip":
-        #     files = str(z.namelist())
-            # if "word/" in files:
-            #     return "docx"
-            # elif "xl/" in files:
-            #     return "xlsx"
-            # elif "ppt/" in files:
-            #     return "pptx"
-            # return "zip"
     # Потом проверяем по словарю
     if file_type in mime_map:
         return mime_map[file_type]
     return 12
 
-#Не сделал tar
+
+def check_archive_encrypted(temp_path, type_file):
+    if type_file == "zip":
+        with ZipFile(temp_path, "r") as Zip:
+            is_encrypted = any(info.flag_bits & 0x1 for info in Zip.infolist())
+    if type_file == "7z":
+        with py7zr.SevenZipFile(temp_path, "r") as z:
+            is_encrypted = z.needs_password()
+    if type_file == "rar":
+        with RarFile(temp_path, "r") as rar:
+            is_encrypted = rar.needs_password()
+    return is_encrypted
+
+
 def open_archive_file(temp_path, password, original_name, type_file):
     """Открывает зашифрованный архив-файл"""
-    utf_password = base64.b64decode(password)
+    clean_password = base64.b64decode(password).decode("utf-8")
     extract_path = os.path.join("../temp", f"{original_name}_extracted")
-    os.makedirs(extract_path,exist_ok=True)
     logger.info(f"Начинаем работу с {type_file}-архивом")
-    try:
-        patoolib.extract_archive(temp_path, outdir=extract_path)
+    is_encrypted = check_archive_encrypted(temp_path, type_file)
+    if  not is_encrypted:
         logger.error("Файл не зашифрован")
         return 16
+    try:
+        os.makedirs(extract_path,exist_ok=True) # Создание папки
+        patoolib.extract_archive(temp_path, outdir=extract_path, password=clean_password)
+        logger.success("Распаковка завершена")
+        return 0
     except PatoolError as e:
-        logger.debug(f"{str(e)}")
-        try:
-            patoolib.extract_archive(temp_path, outdir=extract_path,password=utf_password.decode("utf-8"))
-            logger.success("Распаковка завершена")
-            return 0
-        except PatoolError as e:
-            # Запускаем тестовой командой чтобы увидеть детали
-            if type_file == "rar":
-                cmd = ['unrar', 't', f'-p{password}', temp_path]
-                password_indicator = 'incorrect password'
-            else:  # для 7z и zip
-                cmd = ['7z', 't', f'-p{password}', temp_path]
-                password_indicator = 'wrong password'
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            stderr = result.stderr.lower()
-            # Ошибка пароля
-            if password_indicator in stderr:
-                logger.error(f"Неверный пароль для {type_file}")
-                return 10
-            else:
-                logger.error(f"Ошибка {type_file.upper()}: {e}")
-                return 11
-        except Exception as e:
-            logger.error(f"Неожиданная ошибка {e}")
-            return 12
+        # Запуск тестовой команды, чтобы увидеть детали
+        if type_file == "rar":
+            cmd = ['unrar', 't', f'-p{password}', temp_path]
+            password_indicator = 'incorrect password'
+        else:  # для 7z и zip
+            cmd = ['7z', 't', f'-p{password}', temp_path]
+            password_indicator = 'wrong password'
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        stderr = result.stderr.lower()
+        # Ошибка пароля
+        if password_indicator in stderr:
+            logger.error(f"Неверный пароль для {type_file}")
+            shutil.rmtree(extract_path)
+            return 10
+        else:
+            logger.error(f"Ошибка {type_file.upper()}: {e}")
+            return 11
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка {e}")
+        return 12
+
+
 
 def open_pdf_file(temp_path, password, original_name):
     """Открывает зашифрованный PDF файл"""

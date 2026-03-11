@@ -164,7 +164,7 @@ def test_pdf_no_password():
     """Проверка на PDF файл без пароля"""
     file = TEST_DATA_DIR / "test_pdf_no_pass.pdf"
     result = smart_open(FlaskFile(file), PASSWORD)
-    assert result  == 16
+    assert result == 16
 
 def test_zip_no_password():
     """Проверка на PDF файл без пароля"""

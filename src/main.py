@@ -4,13 +4,13 @@ from flask import Flask, request, jsonify, render_template
 import sup_func
 
 app = Flask(__name__)
-# @app.route('/')
-# def home():
-#     """Домашняя страница для отображения"""
-#     return render_template("home.html")
-#
-# app.config["JSON_AS_ASCII"] = False
-# app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
+@app.route('/')
+def home():
+    """Домашняя страница для отображения"""
+    return render_template("home.html")
+
+app.config["JSON_AS_ASCII"] = False
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 @app.route('/open_file', methods=['POST'])
 def open_file():

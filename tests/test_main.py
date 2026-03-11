@@ -3,7 +3,7 @@ import pytest
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).parent.parent / "src"))
 from main import app
