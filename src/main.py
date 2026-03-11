@@ -83,6 +83,12 @@ def open_file():
             "message": "Файлу не требуется пароль",
             "code": 16
         }),400
+    elif result == 21:
+        return jsonify({
+            "success": False,
+            "message": "Файл пустой",
+            "code": 21
+        }), 400
     else:
         return jsonify({
             "success": False,

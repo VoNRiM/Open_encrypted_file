@@ -188,6 +188,10 @@ def smart_open(file, password):
         temp_path = tmp.name
         original_name = file.filename
     try:
+        file_size = os.path.getsize(temp_path)
+        if file_size == 0:
+            logger.error("Файл пуст")
+            return 21
         file_type = check_filetype(temp_path)
         if file_type == 12:
             logger.error("Неизвестный тип файла")

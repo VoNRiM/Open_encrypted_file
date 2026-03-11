@@ -201,3 +201,8 @@ def test_excel_no_password():
     file = TEST_DATA_DIR / "test_excel_no_pass.xlsx"
     result = smart_open(FlaskFile(file), PASSWORD)
     assert result  == 16
+
+def test_file_empty():
+    file = TEST_DATA_DIR / "test_word_empty.DOCX"
+    result = smart_open(FlaskFile(file), PASSWORD)
+    assert result  == 21
