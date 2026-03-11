@@ -183,3 +183,21 @@ def test_rar_no_password():
     file = TEST_DATA_DIR / "test_rar_no_pass.rar"
     result = smart_open(FlaskFile(file), PASSWORD)
     assert result  == 16
+
+def test_docx_no_password():
+    """Проверка на PDF файл без пароля"""
+    file = TEST_DATA_DIR / "test_word_no_pass.DOCX"
+    result = smart_open(FlaskFile(file), PASSWORD)
+    assert result  == 16
+
+def test_ppoint_no_password():
+    """Проверка на PDF файл без пароля"""
+    file = TEST_DATA_DIR / "test_powerpoint_no_pass.pptx"
+    result = smart_open(FlaskFile(file), PASSWORD)
+    assert result  == 16
+
+def test_excel_no_password():
+    """Проверка на PDF файл без пароля"""
+    file = TEST_DATA_DIR / "test_excel_no_pass.xlsx"
+    result = smart_open(FlaskFile(file), PASSWORD)
+    assert result  == 16

@@ -41,8 +41,11 @@ def check_filetype(file_path):
         'application/encrypted': 'ole',
         'application/x-encrypted': 'ole',
         'application/msword': 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
         'application/vnd.ms-excel': 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
         'application/vnd.ms-powerpoint': 'ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
         'application/vnd.ms-office': 'ole',  # общий Office тип
 
         # Другие архивы
@@ -55,6 +58,16 @@ def check_filetype(file_path):
         'application/pdf': 'pdf',
     }
     file_type = magic.from_file(file_path, mime=True)
+    if file_type == "application/zip":
+        with ZipFile(file_path, "r") as z:
+            files = str(z.namelist())
+            if "word/" in files:
+                return "docx"
+            elif "xl/" in files:
+                return "xlsx"
+            elif "ppt/" in files:
+                return "pptx"
+            return "zip"
     # Потом проверяем по словарю
     if file_type in mime_map:
         return mime_map[file_type]
@@ -157,6 +170,7 @@ def open_word_file(temp_path, password,original_name):
                 office_file.decrypt(of)
             return 0
         except Exception as e:
+            print(str(e))
             if "password" in str(e):
                 logger.error("Неверный пароль")
                 return 10
