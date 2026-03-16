@@ -9,8 +9,7 @@ sys.path.insert(0,str(Path(__file__).parent.parent / "src"))
 from main import app
 
 PASSWORD = "c2FzaGFiZXN0MQ=="
-INCORRECT_PASSWORD = "SGVsbG8sIGkgbGlrZSBzdHJvbmcgbWFu"
-PASSWORD_NO_BASE64 = "c2FzaGFiZXN0MQ"
+CLEAN_PASSWORD = "sashabest1"
 
 @pytest.fixture
 def client():
@@ -30,7 +29,8 @@ def test_open_file_no_file(client):
     response = client.post("/open_file", data = {})
     assert response.status_code == 400
     data = json.loads(response.data)
-    assert data["code"] == 18
+    assert data["message"] == "Нет файла в запросе"
+    assert data["success"] == False
 
 def test_open_file_empty_filename(client):
     """Тест пустое имя файла"""
@@ -41,7 +41,8 @@ def test_open_file_empty_filename(client):
     response = client.post("/open_file", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
     data = json.loads(response.data)
-    assert data["code"] == 17
+    assert data["success"] == False
+    assert data["message"] == "Имя файла пустое"
 
 def test_open_file_no_pass(client):
     data = {
@@ -51,11 +52,12 @@ def test_open_file_no_pass(client):
     response = client.post("/open_file", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
     data = json.loads(response.data)
-    assert data["code"] == 19
+    assert data["message"] == "Поле для пароля пустое"
+    assert data["success"] == False
 
 def test_sup_func_called_correctly(client, mock_sup_func):
     test_content = b"test file content"
-    mock_sup_func.return_value = 0
+    mock_sup_func.return_value = {"success": True, "code": 200, "message": "Файл загружен"}
     data = {
         "file": (io.BytesIO(test_content), "test.txt"),
         "password": PASSWORD
@@ -66,6 +68,7 @@ def test_sup_func_called_correctly(client, mock_sup_func):
     args, kwargs = mock_sup_func.call_args
     called_file, called_password = args
 
-    assert PASSWORD == called_password
+    assert CLEAN_PASSWORD == called_password
     assert called_file.filename == "test.txt"
     assert hasattr(called_file, "save")
+

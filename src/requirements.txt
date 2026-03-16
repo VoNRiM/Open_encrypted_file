@@ -1,0 +1,9 @@
+loguru
+flask
+python-magic
+rarfile
+py7zr
+patoolib
+PyPDF2
+msoffcrypto-tool #word
+werkzeug

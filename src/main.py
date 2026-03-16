@@ -1,7 +1,15 @@
 import os
-
-from flask import Flask, request, jsonify, render_template
+from loguru import logger
+from flask import Flask, request, jsonify, render_template, Response
 import sup_func
+import base64
+
+logger.add("debug.log",
+           format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+           level="DEBUG",
+           rotation="10 MB",
+           retention=5,
+           encoding="utf-8")
 
 app = Flask(__name__)
 @app.route('/')
@@ -13,88 +21,59 @@ app.config["JSON_AS_ASCII"] = False
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 @app.route('/open_file', methods=['POST'])
-def open_file():
-    """Энд-поинт для приёма файла"""
+
+def open_file()->tuple[Response, int]:
+    """Энд-поинт который принимает зашифрованный файл, открывает и сохраняет его в папке temp, возвращая разрешён ли доступ, статус код и комментарий
+    :returns: tuple[Response, int]
+    Response:
+        {success: Разрешён ли доступ |
+        message: Комментарий}
+        int: Статус код
+    """
     if 'file' not in request.files:
+        logger.error("Нет файла в запросе")
         return  jsonify({
             "success" : False,
-            "message" : "Нет файла в запросе",
-            "code" : 18}), 400
+            "message" : "Нет файла в запросе"
+        }), 400
 
     file = request.files['file']
     if file.filename == '':
+        logger.error("Имя файла пустое")
         return  jsonify({
             "success": False,
-            "message": "Имя файла пустое",
-            "code": 17}), 400
+            "message": "Имя файла пустое"
+        }), 400
     # Проверка не равен ли 0 файл
     file.seek(0,os.SEEK_END)
     size = file.tell()
     file.seek(0)
     if size == 0:
+        logger.error("Файл пустой")
         return jsonify({
             "success": False,
-            "message": "Файл пустой",
-            "code": 20}), 400
+            "message": "Файл пустой"
+        }), 400
 
-    #Проверка на пароль. Мб в отдельный файл?
     password = request.form.get('password', "") #Будет пустой если файл не ввели
     if password == "":
+        logger.error("Поле для пароля пустое")
         return jsonify({
             "success" : False,
-            "message" : "Поле для пароля пустое",
-            "code" : 19
+            "message" : "Поле для пароля пустое"
         }), 400
-
-    result = (sup_func.smart_open(file, password))
-    if result == 0:
-        return jsonify({
-            "success": True,
-            "message": "Файл успешно загружен",
-            "code": 0
-        }),200
-    elif result == 10:
+    if sup_func.is_base64(password):
+        logger.error("Пароль не в формате Base 64")
         return jsonify({
             "success": False,
-            "message": "Неверный пароль",
-            "code": 10
-        }),400
-    elif result == 11:
-        return jsonify({
-            "success": False,
-            "message": "Невозможно прочитать файл",
-            "code": 11
-        }),400
-    elif result == 12:
-        return jsonify({
-            "success": False,
-            "message": "Ошибка чтения файлов",
-            "code": 12
-        }),400
-    elif result == 15:
-        return jsonify({
-            "success": False,
-            "message": "Пароль не формата base64",
-            "code": 15
-        }),400
-    elif result == 16:
-        return jsonify({
-            "success": False,
-            "message": "Файлу не требуется пароль",
-            "code": 16
-        }),400
-    elif result == 21:
-        return jsonify({
-            "success": False,
-            "message": "Файл пустой",
-            "code": 21
+            "message": "Пароль не в формате Base 64",
         }), 400
-    else:
-        return jsonify({
-            "success": False,
-            "message": "Неизвестная ошибка",
-            "code": result
-        }),500
+    clean_password = base64.b64decode(password).decode("utf-8")
+    result = sup_func.smart_open(file, clean_password)
+    return jsonify({
+        "success": result["success"],
+        "message": result["message"],
+    }),result["code"]
 
 
 if __name__ == '__main__':

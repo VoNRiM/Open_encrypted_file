@@ -1,4 +1,4 @@
-#Включённые
+# Включённые
 import tempfile
 import os
 import subprocess
@@ -8,34 +8,33 @@ import shutil
 import base64
 import magic
 from patoolib.util import PatoolError
-from pypdf import PdfReader, PdfWriter #PDF
-from pypdf.errors import  PdfReadError
-import msoffcrypto #word
+from pypdf import PdfReader, PdfWriter  # PDF
+from pypdf.errors import PdfReadError
+import msoffcrypto  # word
 import patoolib
 from loguru import logger
 from zipfile import ZipFile
 from rarfile import RarFile
 import py7zr
+from werkzeug.datastructures import FileStorage
 
-# Пароль от файлов: c2FzaGFiZXN0MQ==
-
-logger.add("debug.log",
-           format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-           level="DEBUG",
-           rotation="10 MB",
-           retention=5,
-           encoding="utf-8")
+TEMP_DIR = "../temp"
 
 password_protected_files = {
-    #Архивы
+    # Архивы
     'archives': ["zip", "rar", "7z"],
-    #Документы
+    # Документы
     'documents': ["docx", "xlsx", "pptx", "doc", "xls", "ole"],
-
 }
 
-def check_filetype(file_path):
-    """Возвращает тип файла"""
+
+def check_filetype(file_path: str) -> str | bool:
+    """Возвращает тип файла, определяемого по mime_map
+    :param file_path: Путь, где находится файл у которого определяем тип
+    :returns: str | bool
+    -str: Тип файла в строке
+    -False: Когда не смогли определить тип файла
+    """
     mime_map = {
         # Документы
         'application/encrypted': 'ole',
@@ -58,23 +57,20 @@ def check_filetype(file_path):
         'application/pdf': 'pdf',
     }
     file_type = magic.from_file(file_path, mime=True)
-    if file_type == "application/zip":
-        with ZipFile(file_path, "r") as z:
-            files = str(z.namelist())
-            if "word/" in files:
-                return "docx"
-            elif "xl/" in files:
-                return "xlsx"
-            elif "ppt/" in files:
-                return "pptx"
-            return "zip"
-    # Потом проверяем по словарю
     if file_type in mime_map:
         return mime_map[file_type]
-    return 12
+    return False
 
 
-def check_archive_encrypted(temp_path, type_file):
+def check_archive_encrypted(temp_path: str, type_file: str) -> bool:
+    """
+    Проверяет действительно ли архив, который передаётся в эту функцию имеют пароль
+    :param temp_path: Путь к временному файлу в виде строки
+    :param type_file: Тип файла в виде строки
+    :return: True | False
+        True - Архив зашифрован |
+        False - Архив не зашифрован
+    """
     if type_file == "zip":
         with ZipFile(temp_path, "r") as Zip:
             is_encrypted = any(info.flag_bits & 0x1 for info in Zip.infolist())
@@ -87,20 +83,30 @@ def check_archive_encrypted(temp_path, type_file):
     return is_encrypted
 
 
-def open_archive_file(temp_path, password, original_name, type_file):
-    """Открывает зашифрованный архив-файл"""
-    clean_password = base64.b64decode(password).decode("utf-8")
-    extract_path = os.path.join("../temp", f"{original_name}_extracted")
+def open_archive_file(temp_path: str, password: str, original_name: str, type_file: str) -> dict[str, bool | int | str]:
+    """
+    Открывает зашифрованный архив, и сохраняет все файлы в папке temp
+    :param temp_path: Путь временного файла
+    :param password: Пароль от файла
+    :param original_name: Имя файла для наименования папки в которой содержаться файлы
+    :param type_file: Тип файла
+    :return: dict[str, bool | int | str]:
+        str: Ключ словаря |
+        bool: Разрешён доступ или нет |
+        int: Статус код |
+        str: Комментарий
+    """
+    extract_path = os.path.join(TEMP_DIR, f"{original_name}_extracted")
     logger.info(f"Начинаем работу с {type_file}-архивом")
     is_encrypted = check_archive_encrypted(temp_path, type_file)
-    if  not is_encrypted:
+    if not is_encrypted:
         logger.error("Файл не зашифрован")
-        return 16
+        return {"success": False, "code": 400, "message": "Файл не зашифрован"}
     try:
-        os.makedirs(extract_path,exist_ok=True) # Создание папки
-        patoolib.extract_archive(temp_path, outdir=extract_path, password=clean_password)
+        os.makedirs(extract_path, exist_ok=True)  # Создание папки
+        patoolib.extract_archive(temp_path, outdir=extract_path, password=password)
         logger.success("Распаковка завершена")
-        return 0
+        return {"success": True, "code": 200, "message": "Файл загружен"}
     except PatoolError as e:
         # Запуск тестовой команды, чтобы увидеть детали
         if type_file == "rar":
@@ -115,74 +121,100 @@ def open_archive_file(temp_path, password, original_name, type_file):
         if password_indicator in stderr:
             logger.error(f"Неверный пароль для {type_file}")
             shutil.rmtree(extract_path)
-            return 10
+            return {"success": False, "code": 400, "message": "Неверный пароль"}
         else:
             logger.error(f"Ошибка {type_file.upper()}: {e}")
-            return 11
+            return {"success": False, "code": 400, "message": "Ошибка чтения архива"}
     except Exception as e:
         logger.error(f"Неожиданная ошибка {e}")
-        return 12
+        return {"success": False, "code": 400, "message": f"Неожиданная ошибка{e}"}
 
 
-
-def open_pdf_file(temp_path, password, original_name):
-    """Открывает зашифрованный PDF файл"""
-    clean_password = base64.b64decode(password).decode("utf-8")
+def open_pdf_file(temp_path: str, password: str, original_name: str) -> dict[str, bool | int | str]:
+    """
+    Открывает зашифрованный pdf файл и сохраняет его в папке temp
+    :param temp_path: Путь временного файла
+    :param password: Пароль от файла
+    :param original_name: Имя файла
+    :return: dict[str, bool | int | str]:
+        str: Ключ словаря |
+        bool: Разрешён доступ или нет |
+        int: Статус код |
+        str: Комментарий
+    """
     reader = PdfReader(temp_path)
-    output_path =  os.path.join("../temp", f"decrypted_{os.path.basename(original_name)}")
+    output_path = os.path.join(TEMP_DIR, f"decrypted_{os.path.basename(original_name)}")
     if not reader.is_encrypted:
         logger.error("Файл не зашифрован")
-        return 16
+        return {"success": False, "code": 400, "message": "Файл не зашифрован"}
     try:
-        result = reader.decrypt(clean_password)
+        result = reader.decrypt(password)
         logger.debug("Мы прочитали файл")
         if result == 1:
             writer = PdfWriter()
-            for page in reader.pages: # Копируем по странице
+            for page in reader.pages:  # Копируем по странице
                 writer.add_page(page)
             logger.info(f"Cохраняем файл по адресу {output_path}")
-            with open (output_path, "wb") as f:
+            with open(output_path, "wb") as f:
                 writer.write(f)
             logger.success("Запись файла прошла успешно")
-            return 0
+            return {"success": True, "code": 200, "message": "Файл загружен"}
         else:
             logger.error("Неверный пароль")
-            return 10
-    except PdfReadError as e: # Ошибка чтения PDF
+            return {"success": False, "code": 400, "message": "Неверный пароль"}
+    except PdfReadError as e:  # Ошибка чтения PDF
         logger.error(f"Ошибка PDF: {e}")
-        return 11
+        return {"success": False, "code": 400, "message": "Ошибка чтения файла"}
     except Exception as e:
         logger.error(f"Неизвестная ошибка: {e}")
-        return f"Неизвестная ошибка{e}"
+        return {"success": False, "code": 500, "message": f"Неизвестная ошибка: {e}"}
 
-def open_word_file(temp_path, password,original_name):
-    """Открывает зашифрованный ворд-файл"""
-    clean_password = base64.b64decode(password).decode("utf-8")
+
+def open_word_file(temp_path: str, password: str, original_name: str) -> dict[str, bool | int | str]:
+    """
+    Открывает зашифрованный word файл и сохраняет его в папке temp
+    :param temp_path: Путь временного файла
+    :param password: Пароль от файла
+    :param original_name: Имя файла
+    :return: dict[str, bool | int | str]:
+        str: Ключ словаря |
+        bool: Разрешён доступ или нет |
+        int: Статус код |
+        str: Комментарий
+    """
     with open(temp_path, "rb") as f:
         office_file = msoffcrypto.OfficeFile(f)
         if not office_file.is_encrypted():
             logger.error("Файл не зашифрован")
-            return 16
+            return {"success": False, "code": 400, "message": "Файл не зашифрован"}
         try:
-            office_file.load_key(password=clean_password)
-            output_path = os.path.join("../temp", f"decrypted_{os.path.basename(original_name)}")
+            office_file.load_key(password=password)
+            output_path = os.path.join(TEMP_DIR, f"decrypted_{os.path.basename(original_name)}")
             with open(output_path, 'wb') as of:
                 office_file.decrypt(of)
-            return 0
+            return {"success": True, "code": 200, "message": "Файл загружен"}
+
         except Exception as e:
             print(str(e))
             if "password" in str(e):
                 logger.error("Неверный пароль")
-                return 10
+                return {"success": False, "code": 400, "message": "Неверный пароль"}
             else:
-                logger.error(f"Неизвестная ошибка:{e}")
+                return {"success": False, "code": 500, "message": f"Неизвестная ошибка: {e}"}
 
 
-def smart_open(file, password):
-    """Функция сортировки файлов"""
-    if not is_base64_format(password):
-        logger.error("Пароль не является формата Base64")
-        return 15
+def smart_open(file: FileStorage, password: str) -> dict[str, bool | int | str]:
+    """
+    Функция распределяющая, какая функция требуется  для открытия
+    конкретного типа файла
+    :param file: Объект загруженного файла
+    :param password: Пароль от файла
+    :returns: dict[str, bool | int | str]:
+        str: Ключ словаря |
+        bool: Разрешён доступ или нет |
+        int: Статус код |
+        str: Комментарий
+    """
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         file.save(tmp.name)
         temp_path = tmp.name
@@ -191,31 +223,40 @@ def smart_open(file, password):
         file_size = os.path.getsize(temp_path)
         if file_size == 0:
             logger.error("Файл пуст")
-            return 21
+            return {"success": False, "code": 400, "message": "Файл пуст"}
         file_type = check_filetype(temp_path)
-        if file_type == 12:
+        if not file_type:
             logger.error("Неизвестный тип файла")
-            return 12
+            return {"success": False, "code": 400, "message": "Неизвестный тип файла"}
         else:
             logger.info(f"Тип файла: {file_type}")
             if file_type in password_protected_files["archives"]:
-                result = open_archive_file(temp_path,password,original_name,file_type)
+                result = open_archive_file(temp_path, password, original_name, file_type)
                 return result
             elif file_type in password_protected_files["documents"]:
                 result = open_word_file(temp_path, password, original_name)
                 return result
             elif file_type == "pdf":
-                result = open_pdf_file(temp_path, password,original_name)
+                result = open_pdf_file(temp_path, password, original_name)
                 return result
-            return 12
+            else:
+                logger.error("Неподдерживаемый тип файла")
+            return {"success": False, "code": 400, "message": "Неподдерживаемый тип файла"}
+    except Exception as e:
+        return {"success": False, "code": 500, "message": f"Неизвестная ошибка: {e}"}
     finally:
         if os.path.exists(temp_path):
             os.unlink(temp_path)
             logger.debug(f"Временный файл удалён")
 
-def is_base64_format(password):
-    """Проверка является ли пароль формату base64"""
-    if len(password) % 4 == 0:
-        return True
-    else:
+
+def is_base64(password: str) -> bool:
+    """Проверка является ли пароль формату base64
+    :param password: Пароль в виде строки
+    :returns: True - Пароль в формате base 64 |
+        False - Пароль не в формате base 64
+    """
+    try:
+        return base64.b64encode(base64.b64decode(password)) == password
+    except Exception:
         return False
