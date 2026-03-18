@@ -20,6 +20,7 @@ from werkzeug.datastructures import FileStorage
 
 TEMP_DIR = "../temp"
 
+
 password_protected_files = {
     # Архивы
     'archives': ["zip", "rar", "7z"],
@@ -71,6 +72,7 @@ def check_archive_encrypted(temp_path: str, type_file: str) -> bool:
         True - Архив зашифрован |
         False - Архив не зашифрован
     """
+    is_encrypted: bool = False
     if type_file == "zip":
         with ZipFile(temp_path, "r") as Zip:
             is_encrypted = any(info.flag_bits & 0x1 for info in Zip.infolist())
@@ -215,15 +217,17 @@ def smart_open(file: FileStorage, password: str) -> dict[str, bool | int | str]:
         int: Статус код |
         str: Комментарий
     """
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        file.save(tmp.name)
-        temp_path = tmp.name
-        original_name = file.filename
     try:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            file.save(tmp.name)
+            temp_path = tmp.name
+            original_name = file.filename
+
         file_size = os.path.getsize(temp_path)
         if file_size == 0:
             logger.error("Файл пуст")
             return {"success": False, "code": 400, "message": "Файл пуст"}
+
         file_type = check_filetype(temp_path)
         if not file_type:
             logger.error("Неизвестный тип файла")

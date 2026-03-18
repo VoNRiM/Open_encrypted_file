@@ -7,3 +7,4 @@ patoolib
 PyPDF2
 msoffcrypto-tool #word
 werkzeug
+pytest
