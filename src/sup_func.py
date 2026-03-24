@@ -16,6 +16,7 @@ from loguru import logger
 from zipfile import ZipFile
 from rarfile import RarFile
 import py7zr
+from sqlalchemy.util import counter
 from werkzeug.datastructures import FileStorage
 
 TEMP_DIR = "../temp"
@@ -84,6 +85,38 @@ def check_archive_encrypted(temp_path: str, type_file: str) -> bool:
             is_encrypted = rar.needs_password()
     return is_encrypted
 
+def save_archive(extract_path: str, original_name: str) -> bool:
+    """
+    Функция, которая сохраняет файлы в архиве с уникальным именем, для избежания ошибки
+    :param extract_path: путь до файлов
+    :param original_name: оригинальное имя файла
+    :return: True | False
+        True - архив успешно создан
+        False - архим не удалось сохранить
+    """
+    try:
+        save_dir = os.path.dirname(extract_path)
+        base_name = os.path.splitext(original_name)[0]
+        candidate_path = os.path.join(save_dir, f"{base_name}.zip")
+        if not os.path.exists(candidate_path):
+            new_path = candidate_path
+            logger.debug(f"Архив не существует, создаём {new_path}")
+        else:
+            counter = 1
+            while True:
+                new_name = f"{base_name}_{counter}.zip"
+                new_path = os.path.join(save_dir, new_name)
+                if not os.path.exists(new_path):
+                    logger.debug(f"Архив существует, создаём {new_path}")
+                    break
+                counter += 1
+
+        files = os.listdir(extract_path)
+        file_paths = [os.path.join(extract_path, f) for f in files]
+        patoolib.create_archive(new_path, file_paths)
+        return True
+    except Exception:
+        return False
 
 def open_archive_file(temp_path: str, password: str, original_name: str, type_file: str) -> dict[str, bool | int | str]:
     """
@@ -99,6 +132,7 @@ def open_archive_file(temp_path: str, password: str, original_name: str, type_fi
         str: Комментарий
     """
     extract_path = os.path.join(TEMP_DIR, f"{original_name}_extracted")
+    #Здесь создаём папку.
     logger.info(f"Начинаем работу с {type_file}-архивом")
     is_encrypted = check_archive_encrypted(temp_path, type_file)
     if not is_encrypted:
@@ -106,9 +140,12 @@ def open_archive_file(temp_path: str, password: str, original_name: str, type_fi
         return {"success": False, "code": 400, "message": "Файл не зашифрован"}
     try:
         os.makedirs(extract_path, exist_ok=True)  # Создание папки
-        patoolib.extract_archive(temp_path, outdir=extract_path, password=password)
-        logger.success("Распаковка завершена")
-        return {"success": True, "code": 200, "message": "Файл загружен"}
+        patoolib.extract_archive(temp_path, outdir=extract_path, password=password) # Разархивирование архива в папку.
+        result = save_archive(extract_path, original_name)
+        if result:
+            return {"success": True, "code": 200, "message": "Файл загружен"}
+        else:
+            return {"success": False, "code": 400, "message": "Ошибка сохранения архива"}
     except PatoolError as e:
         # Запуск тестовой команды, чтобы увидеть детали
         if type_file == "rar":
@@ -122,7 +159,6 @@ def open_archive_file(temp_path: str, password: str, original_name: str, type_fi
         # Ошибка пароля
         if password_indicator in stderr:
             logger.error(f"Неверный пароль для {type_file}")
-            shutil.rmtree(extract_path)
             return {"success": False, "code": 400, "message": "Неверный пароль"}
         else:
             logger.error(f"Ошибка {type_file.upper()}: {e}")
@@ -130,6 +166,8 @@ def open_archive_file(temp_path: str, password: str, original_name: str, type_fi
     except Exception as e:
         logger.error(f"Неожиданная ошибка {e}")
         return {"success": False, "code": 400, "message": f"Неожиданная ошибка{e}"}
+    finally:
+        shutil.rmtree(extract_path)
 
 
 def open_pdf_file(temp_path: str, password: str, original_name: str) -> dict[str, bool | int | str]:
@@ -262,5 +300,5 @@ def is_base64(password: str) -> bool:
     """
     try:
         return base64.b64encode(base64.b64decode(password)) == password
-    except Exception:
+    except Exception as e:
         return False

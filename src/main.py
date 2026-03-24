@@ -5,7 +5,7 @@ import sup_func
 import base64
 
 logger.add("debug.log",
-           format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+           format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message} | {function}",
            level="DEBUG",
            rotation="10 MB",
            retention=5,
@@ -21,7 +21,6 @@ app.config["JSON_AS_ASCII"] = False
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 @app.route('/open_file', methods=['POST'])
-
 def open_file()->tuple[Response, int]:
     """Энд-поинт который принимает зашифрованный файл, открывает и сохраняет его в папке temp, возвращая разрешён ли доступ, статус код и комментарий
     :returns: tuple[Response, int]

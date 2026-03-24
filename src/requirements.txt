@@ -3,8 +3,9 @@ flask
 python-magic
 rarfile
 py7zr
-patoolib
+patool
 PyPDF2
 msoffcrypto-tool #word
 werkzeug
 pytest
+

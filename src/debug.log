@@ -1,0 +1,100 @@
+12026-03-24 15:07:13 | INFO | smart_open: Тип файла: zip
+2026-03-24 15:07:13 | INFO | open_archive_file: Начинаем работу с zip-архивом
+2026-03-24 15:07:13 | INFO | Файлы в папке: ['word1.txt', 'word_1.txt', 'word1_1.txt', 'word.txt']
+2026-03-24 15:07:13 | ERROR | open_archive_file: Неожиданная ошибка create_archive() missing 2 required positional arguments: 'archive' and 'filenames'
+2026-03-24 15:07:13 | DEBUG | smart_open: Временный файл удалён
+2026-03-24 15:12:37 | INFO | smart_open: Тип файла: zip | smart_open
+2026-03-24 15:12:37 | INFO | open_archive_file: Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 15:12:37 | INFO | open_archive_file: Файлы в папке: ['word1.txt', 'word.txt'] | open_archive_file
+2026-03-24 15:12:37 | ERROR | open_archive_file: Ошибка ZIP: file `word1.txt' was not found | open_archive_file
+2026-03-24 15:12:37 | DEBUG | smart_open: Временный файл удалён | smart_open
+2026-03-24 15:44:23 | INFO | Тип файла: zip | smart_open
+2026-03-24 15:44:23 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 15:44:23 | INFO | Файлы в папке: ['word1.txt', 'word_1.txt', 'word1_1.txt', 'word.txt'] | open_archive_file
+2026-03-24 15:44:23 | ERROR | Неожиданная ошибка unsupported operand type(s) for /: 'str' and 'list' | open_archive_file
+2026-03-24 15:44:23 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 15:47:00 | ERROR | Поле для пароля пустое | open_file
+2026-03-24 15:47:14 | INFO | Тип файла: zip | smart_open
+2026-03-24 15:47:14 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 15:47:14 | INFO | Файлы в папке: ['word1_2.txt', 'word1.txt', 'word_1.txt', 'word_2.txt', 'word1_1.txt', 'word.txt'] | open_archive_file
+2026-03-24 15:47:14 | ERROR | Ошибка ZIP: file `t' was not found | open_archive_file
+2026-03-24 15:47:14 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 15:52:08 | INFO | Тип файла: zip | smart_open
+2026-03-24 15:52:08 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 15:52:08 | INFO | Файлы в папке: <generator object walk at 0x79536223b290> | open_archive_file
+2026-03-24 15:52:08 | ERROR | Неожиданная ошибка stat: path should be string, bytes, os.PathLike or integer, not tuple | open_archive_file
+2026-03-24 15:52:08 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:01:29 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:01:29 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:01:29 | ERROR | Неожиданная ошибка join() argument must be str, bytes, or os.PathLike object, not 'tuple' | open_archive_file
+2026-03-24 16:01:29 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:03:02 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:03:02 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:03:02 | ERROR | Неожиданная ошибка join() argument must be str, bytes, or os.PathLike object, not 'tuple' | open_archive_file
+2026-03-24 16:03:02 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:07:38 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:07:38 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:07:38 | ERROR | Неожиданная ошибка join() argument must be str, bytes, or os.PathLike object, not 'tuple' | open_archive_file
+2026-03-24 16:07:38 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:13:25 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:13:25 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:13:25 | DEBUG | Файлы в папке: ['word1_2.txt', 'word1.txt', 'word_1.txt', 'word_2.txt', 'word1_1.txt', 'word_3.txt', 'word1_3.txt', 'word.txt'] | open_archive_file
+2026-03-24 16:13:25 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1_2.txt', '../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word_1.txt', '../temp/test_zip.zip_extracted/word_2.txt', '../temp/test_zip.zip_extracted/word1_1.txt', '../temp/test_zip.zip_extracted/word_3.txt', '../temp/test_zip.zip_extracted/word1_3.txt', '../temp/test_zip.zip_extracted/word.txt'] | open_archive_file
+2026-03-24 16:13:25 | SUCCESS | Распаковка завершена | open_archive_file
+2026-03-24 16:13:25 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:14:48 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:14:48 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:14:48 | DEBUG | Файлы в папке: ['word1_2.txt', 'word1_4.txt', 'word1.txt', 'word_1.txt', 'word_2.txt', 'word1_1.txt', 'word_3.txt', 'word1_3.txt', 'word_4.txt', 'word.txt'] | open_archive_file
+2026-03-24 16:14:48 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1_2.txt', '../temp/test_zip.zip_extracted/word1_4.txt', '../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word_1.txt', '../temp/test_zip.zip_extracted/word_2.txt', '../temp/test_zip.zip_extracted/word1_1.txt', '../temp/test_zip.zip_extracted/word_3.txt', '../temp/test_zip.zip_extracted/word1_3.txt', '../temp/test_zip.zip_extracted/word_4.txt', '../temp/test_zip.zip_extracted/word.txt'] | open_archive_file
+2026-03-24 16:14:48 | ERROR | Ошибка ZIP: cannot overwrite existing file `../temp/test_zip.zip.zip' | open_archive_file
+2026-03-24 16:14:48 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:16:57 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:16:57 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:16:57 | DEBUG | Файлы в папке: ['word1_2.txt', 'word1_4.txt', 'word1.txt', 'word_1.txt', 'word1_5.txt', 'word_2.txt', 'word1_1.txt', 'word_5.txt', 'word_3.txt', 'word1_3.txt', 'word_4.txt', 'word.txt'] | open_archive_file
+2026-03-24 16:16:57 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1_2.txt', '../temp/test_zip.zip_extracted/word1_4.txt', '../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word_1.txt', '../temp/test_zip.zip_extracted/word1_5.txt', '../temp/test_zip.zip_extracted/word_2.txt', '../temp/test_zip.zip_extracted/word1_1.txt', '../temp/test_zip.zip_extracted/word_5.txt', '../temp/test_zip.zip_extracted/word_3.txt', '../temp/test_zip.zip_extracted/word1_3.txt', '../temp/test_zip.zip_extracted/word_4.txt', '../temp/test_zip.zip_extracted/word.txt'] | open_archive_file
+2026-03-24 16:16:57 | SUCCESS | Распаковка завершена | open_archive_file
+2026-03-24 16:16:57 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:17:40 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:17:40 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:17:40 | DEBUG | Файлы в папке: ['word1.txt', 'word.txt'] | open_archive_file
+2026-03-24 16:17:40 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word.txt'] | open_archive_file
+2026-03-24 16:17:40 | ERROR | Ошибка ZIP: cannot overwrite existing file `../temp/test_zip.zip' | open_archive_file
+2026-03-24 16:17:40 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 16:18:53 | INFO | Тип файла: zip | smart_open
+2026-03-24 16:18:53 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 16:18:53 | DEBUG | Файлы в папке: ['word1.txt', 'word_1.txt', 'word1_1.txt', 'word.txt'] | open_archive_file
+2026-03-24 16:18:53 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word_1.txt', '../temp/test_zip.zip_extracted/word1_1.txt', '../temp/test_zip.zip_extracted/word.txt'] | open_archive_file
+2026-03-24 16:18:53 | ERROR | Ошибка ZIP: cannot overwrite existing file `../temp/test_zip.zip' | open_archive_file
+2026-03-24 16:18:53 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 18:37:46 | INFO | Тип файла: zip | smart_open
+2026-03-24 18:37:46 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 18:37:46 | ERROR | Неожиданная ошибка save_archive() missing 2 required positional arguments: 'extract_path' and 'original_name' | open_archive_file
+2026-03-24 18:37:46 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 18:38:49 | INFO | Тип файла: zip | smart_open
+2026-03-24 18:38:49 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 18:38:49 | DEBUG | Архив не существует, создаём ../temp/test_zip.zip | save_archive
+2026-03-24 18:38:49 | DEBUG | Файлы в папке: ['word1.txt', 'word.txt'] | save_archive
+2026-03-24 18:38:49 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word.txt'] | save_archive
+2026-03-24 18:38:49 | SUCCESS | Распаковка завершена | save_archive
+2026-03-24 18:38:49 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 18:38:59 | INFO | Тип файла: zip | smart_open
+2026-03-24 18:38:59 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 18:38:59 | DEBUG | Архив сущесвтует, создаём ../temp/test_zip_1.zip | save_archive
+2026-03-24 18:38:59 | DEBUG | Файлы в папке: ['word1.txt', 'word.txt'] | save_archive
+2026-03-24 18:38:59 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word.txt'] | save_archive
+2026-03-24 18:38:59 | SUCCESS | Распаковка завершена | save_archive
+2026-03-24 18:38:59 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 18:39:07 | INFO | Тип файла: zip | smart_open
+2026-03-24 18:39:07 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 18:39:07 | DEBUG | Архив сущесвтует, создаём ../temp/test_zip_2.zip | save_archive
+2026-03-24 18:39:07 | DEBUG | Файлы в папке: ['word1.txt', 'word.txt'] | save_archive
+2026-03-24 18:39:07 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word.txt'] | save_archive
+2026-03-24 18:39:07 | SUCCESS | Распаковка завершена | save_archive
+2026-03-24 18:39:07 | DEBUG | Временный файл удалён | smart_open
+2026-03-24 18:39:12 | INFO | Тип файла: zip | smart_open
+2026-03-24 18:39:12 | INFO | Начинаем работу с zip-архивом | open_archive_file
+2026-03-24 18:39:12 | DEBUG | Архив сущесвтует, создаём ../temp/test_zip_3.zip | save_archive
+2026-03-24 18:39:12 | DEBUG | Файлы в папке: ['word1.txt', 'word.txt'] | save_archive
+2026-03-24 18:39:12 | DEBUG | Адреса файлов: ['../temp/test_zip.zip_extracted/word1.txt', '../temp/test_zip.zip_extracted/word.txt'] | save_archive
+2026-03-24 18:39:12 | SUCCESS | Распаковка завершена | save_archive
+2026-03-24 18:39:12 | DEBUG | Временный файл удалён | smart_open
