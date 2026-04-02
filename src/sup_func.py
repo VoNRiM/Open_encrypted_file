@@ -3,11 +3,10 @@ import tempfile
 import os
 import subprocess
 import shutil
+import time
 
 # Сторонние
 import base64
-from re import search
-
 import magic
 from patoolib.util import PatoolError
 from pypdf import PdfReader, PdfWriter  # PDF
@@ -116,7 +115,7 @@ def save_archive(extract_path: str, original_name: str) -> bool:
 
         files = os.listdir(extract_path)
         file_paths = [os.path.join(extract_path, f) for f in files]
-        patoolib.create_archive(new_path, file_paths)
+        patoolib.create_archive(new_path, tuple(file_paths))
         return True
     except Exception as e:
         logger.error(f"Не удалось создать архив: {e}")
@@ -198,7 +197,7 @@ def open_pdf_file(temp_path: str, password: str, original_name: str) -> dict[str
             writer = PdfWriter()
             for page in reader.pages:  # Копируем по странице
                 writer.add_page(page)
-            logger.info(f"Cохраняем файл по адресу {output_path}")
+            logger.info(f"Cохроняем файл по адресу {output_path}")
             with open(output_path, "wb") as f:
                 writer.write(f)
             logger.success("Запись файла прошла успешно")
@@ -268,9 +267,11 @@ def smart_open(file: FileStorage, password: str) -> dict[str, bool | int | str]:
         db = DataBaseWork()
         db.add_data_in_list(BLACK_LIST,temp_path) # Добавляем файл в таблицу для проведения тестов
         logger.debug("Добавляем файл в таблицу")
+        start_time = time.time()
         search_result = db.search_one_file_in_table(temp_path)
+        end_time = time.time() - start_time
         if search_result:
-            logger.info(f"Файл обнаружен в {search_result}_table")
+            logger.info(f"Файл обнаружен в {search_result}_table за {end_time}")
         else:
             logger.info(f"Файл не обнаружен в таблицах")
         db.del_data_in_list(BLACK_LIST, temp_path) # Удаляем файл из таблицы

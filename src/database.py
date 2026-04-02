@@ -12,10 +12,12 @@ ONE_MILLION_WRITES = 1_000_000
 BATCH_SIZE = 10_000
 
 
-def calculate_file_hash(file_path: Path) -> str:
+def calculate_file_hash(file_path: Path) -> str | None:
     """Вычисляет хэш файла
-    :param file_path: Путь до орпеделяемого файла
-    :returns: str: Хэш файла
+    :param file_path: Путь до определяемого файла
+    :returns:
+        str: Хэш файла при успехе
+        None: Не удалось вычислить
     """
     try:
         md5 = hashlib.md5()
@@ -25,6 +27,7 @@ def calculate_file_hash(file_path: Path) -> str:
         return md5.hexdigest()
     except Exception as e:
         logger.error(f"Ошибка вычисления кэша{e}")
+        return None
 
 
 class WhiteList(Base):
@@ -40,7 +43,6 @@ class WhiteList(Base):
               postgresql_using='gin', postgresql_ops={"hash": "gin_trgm_ops"})
     )
 
-
 class BlackList(Base):
     """Класс в котором определяется таблица Black_list"""
     __tablename__ = "black_list"
@@ -54,7 +56,6 @@ class BlackList(Base):
               postgresql_using='gin', postgresql_ops={"hash": "gin_trgm_ops"})
     )
 
-
 class DataBaseWork:
     """Класс, который описывает методы создания данных в таблице,
     а так же методы позволяющие работать с таблицей"""
@@ -64,7 +65,7 @@ class DataBaseWork:
         self.SessionLocal = sessionmaker(bind=engine)
 
     def has_data(self):
-        """Проверят есть ли данные в таблице"""
+        """Выполняет проверку, существуют ли данные в таблице"""
         db = self.SessionLocal()
         try:
             white_count = db.query(WhiteList).count()
@@ -73,10 +74,13 @@ class DataBaseWork:
         finally:
             db.close()
 
-    def generate_test_data(self, count: int):
+    def generate_test_data(self, count: int)-> bool:
         """
         Генерирует условные записи, которые используются для тестов
         :param count: кол-во записей для генерации
+        :returns:
+            True - Данные успешно созданы
+            False - Данные не созданы
         """
         db = self.SessionLocal()
         try:
@@ -91,7 +95,6 @@ class DataBaseWork:
                 db.add_all(batch)
                 db.commit()
             logger.info("Добавлено 1 миллион записей в белый лист ")
-
             for i in range(0, count, BATCH_SIZE):
                 batch = []
                 batch_end = min(i + BATCH_SIZE, count)
@@ -103,8 +106,12 @@ class DataBaseWork:
                 db.add_all(batch)
                 db.commit()
             logger.info("Добавлено 1 миллион записей в чёрный лист")
+            return True
         except Exception as e:
             logger.error(f"Неизвестная ошибка{e}")
+            return False
+        finally:
+            db.close()
 
     def add_data_in_list(self, type_list: str, file_path: str) -> bool:
         """
@@ -123,10 +130,12 @@ class DataBaseWork:
         try:
             file_path = Path(file_path)
             file_hash = calculate_file_hash(file_path)
+            if not file_hash:
+                return False
             file_name = file_path.name
             logger.info("Вычислен кэш для добавления файла")
         except Exception as e:
-            logger.error(f"Ошибка вычисления xэша {e}")
+            logger.error(f"Ошибка вычисления кэша {e}")
             return False
         db = self.SessionLocal()
         try:
@@ -168,6 +177,8 @@ class DataBaseWork:
         try:
             file_path = Path(file_path)
             file_hash = calculate_file_hash(file_path)
+            if not file_hash:
+                return False
             logger.info("Вычислен кэш для удаления файла")
         except Exception as e:
             logger.error(f"Ошибка вычисления кэша {e}")
@@ -205,6 +216,8 @@ class DataBaseWork:
         """
         file_path = Path(file_path)
         file_hash = calculate_file_hash(file_path)
+        if not file_hash:
+            return None
         db = self.SessionLocal()
         black_entry = db.query(BlackList).filter_by(hash=file_hash).first()
         if black_entry:
@@ -214,7 +227,8 @@ class DataBaseWork:
             return "White"
         return None
 
-    def return_data_from_table(self, model: str, page: int, per_page: int, filters: dict[str, str | None]) -> dict[
+    def return_data_from_table(self, model: str, page: int, per_page: int, filters: dict[str, str | None]) \
+            -> dict[
         str, Any]:
         """
         Возвращает таблицу данных с пагинацией с возможностью поиска и без поиска
@@ -243,8 +257,6 @@ class DataBaseWork:
                 {"id": row.id, "file_name": row.file_name, "hash": row.hash}
                 for row in rows
             ]
-            # А если ни одного совпадения? тоже красиво оформить.
-
             return {
                 "success": True,
                 "type": model,
