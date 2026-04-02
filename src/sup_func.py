@@ -6,6 +6,8 @@ import shutil
 
 # Сторонние
 import base64
+from re import search
+
 import magic
 from patoolib.util import PatoolError
 from pypdf import PdfReader, PdfWriter  # PDF
@@ -16,11 +18,12 @@ from loguru import logger
 from zipfile import ZipFile
 from rarfile import RarFile
 import py7zr
-from sqlalchemy.util import counter
 from werkzeug.datastructures import FileStorage
+from database import DataBaseWork
 
 TEMP_DIR = "../temp"
-
+BLACK_LIST = "Black"
+WHITE_LIST = "White"
 
 password_protected_files = {
     # Архивы
@@ -91,8 +94,8 @@ def save_archive(extract_path: str, original_name: str) -> bool:
     :param extract_path: путь до файлов
     :param original_name: оригинальное имя файла
     :return: True | False
-        True - архив успешно создан
-        False - архим не удалось сохранить
+        True - архив успешно сохранён
+        False - архив не удалось сохранить
     """
     try:
         save_dir = os.path.dirname(extract_path)
@@ -115,7 +118,8 @@ def save_archive(extract_path: str, original_name: str) -> bool:
         file_paths = [os.path.join(extract_path, f) for f in files]
         patoolib.create_archive(new_path, file_paths)
         return True
-    except Exception:
+    except Exception as e:
+        logger.error(f"Не удалось создать архив: {e}")
         return False
 
 def open_archive_file(temp_path: str, password: str, original_name: str, type_file: str) -> dict[str, bool | int | str]:
@@ -245,7 +249,7 @@ def open_word_file(temp_path: str, password: str, original_name: str) -> dict[st
 
 def smart_open(file: FileStorage, password: str) -> dict[str, bool | int | str]:
     """
-    Функция распределяющая, какая функция требуется  для открытия
+    Функция распределяющая, какая функция требуется для открытия
     конкретного типа файла
     :param file: Объект загруженного файла
     :param password: Пароль от файла
@@ -260,7 +264,17 @@ def smart_open(file: FileStorage, password: str) -> dict[str, bool | int | str]:
             file.save(tmp.name)
             temp_path = tmp.name
             original_name = file.filename
-
+        # Ищем файл в таблицах
+        db = DataBaseWork()
+        db.add_data_in_list(BLACK_LIST,temp_path) # Добавляем файл в таблицу для проведения тестов
+        logger.debug("Добавляем файл в таблицу")
+        search_result = db.search_one_file_in_table(temp_path)
+        if search_result:
+            logger.info(f"Файл обнаружен в {search_result}_table")
+        else:
+            logger.info(f"Файл не обнаружен в таблицах")
+        db.del_data_in_list(BLACK_LIST, temp_path) # Удаляем файл из таблицы
+        logger.debug("Удаляем файл из таблицы")
         file_size = os.path.getsize(temp_path)
         if file_size == 0:
             logger.error("Файл пуст")

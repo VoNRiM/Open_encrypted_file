@@ -22,7 +22,9 @@ app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 @app.route('/open_file', methods=['POST'])
 def open_file()->tuple[Response, int]:
-    """Энд-поинт который принимает зашифрованный файл, открывает и сохраняет его в папке temp, возвращая разрешён ли доступ, статус код и комментарий
+    """Энд-поинт который принимает зашифрованный файл,
+    открывает и сохраняет его в папке temp, возвращая разрешён ли доступ,
+    статус код и комментарий
     :returns: tuple[Response, int]
     Response:
         {success: Разрешён ли доступ |
