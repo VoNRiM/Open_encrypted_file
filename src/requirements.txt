@@ -4,7 +4,7 @@ python-magic
 rarfile
 py7zr
 patool
-PyPDF2
+pypdf
 msoffcrypto-tool #word
 werkzeug
 pytest
