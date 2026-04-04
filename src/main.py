@@ -3,7 +3,7 @@ from loguru import logger
 from flask import Flask, request, jsonify, render_template, Response
 import sup_func
 import base64
-
+logger.remove()
 logger.add("debug.log",
            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message} | {function}",
            level="DEBUG",

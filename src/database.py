@@ -108,7 +108,7 @@ class DataBaseWork:
             logger.info("Добавлено 1 миллион записей в чёрный лист")
             return True
         except Exception as e:
-            logger.error(f"Неизвестная ошибка{e}")
+            logger.error(f"Неизвестная ошибка: {e}")
             return False
         finally:
             db.close()
@@ -206,8 +206,8 @@ class DataBaseWork:
             db.close()
 
     def search_one_file_in_table(self, file_path: str) -> str | None:
-        """Функция, которая ищет файл в обеих таблицах,
-        используются для в функции sup_func.
+        """Функция, которая ищет определённый файл в обеих таблицах,
+        используются в функции smart_open в sup_func.py.
         :param file_path: Путь к файлу
         :returns:
             Black: Если файл найден в black_list
@@ -231,7 +231,8 @@ class DataBaseWork:
             -> dict[
         str, Any]:
         """
-        Возвращает таблицу данных с пагинацией с возможностью поиска и без поиска
+        Возвращает страницу данных с пагинацией с возможностью поиска, в случае ошибки возвращает
+        статус success и message ошибки.
         :param model: Название таблицы,
         :param page: Номер страницы,
         :param per_page: Кол-во записей на одной странице
@@ -247,8 +248,8 @@ class DataBaseWork:
             filter_value = filters.get("filter_value")
             offset = (page - 1) * per_page
             query = db.query(search_model)
-            if filter_column:
-                logger.info("Обнаружен filter_column осуществляем поиск")
+            if filter_column and filter_value:
+                logger.info("Обнаружен filter_column и filter_value осуществляем поиск")
                 column = getattr(search_model, filter_column)
                 query = query.filter(column.like(f"%{filter_value}%"))
             count_value = query.count()
@@ -264,10 +265,10 @@ class DataBaseWork:
                 "count_value": count_value,
             }
         except Exception as e:
-            logger.error(f"Неизвестная ошибка при выводе таблицы{e}")
+            logger.error(f"Неизвестная ошибка при выводе таблицы: {e}")
             return {
                 "success": False,
-                "message": f"Ошибка при выводе таблицы{e}"
+                "message": f"Ошибка при выводе таблицы: {e}"
             }
         finally:
             db.close()

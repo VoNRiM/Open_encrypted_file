@@ -23,13 +23,13 @@ with engine.connect() as conn:
         logger.success("База данных создана")
     except Exception as e:
         if "already exists" in str(e):
-            logger.info("Ошибка: База данных уже существует")
+            logger.info("База данных уже существует")
         else:
             logger.error(f"Неизвестная ошибка: {e}")
     try:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
         conn.commit()
-        logger.info("Добавление trgm")
+        logger.info("Успешное добавление trgm")
     except Exception as e:
         logger.error(f"Неизвестная ошибка добавления trgm{e}")
 
